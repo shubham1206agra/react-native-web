@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -93,7 +93,10 @@ describe('create-event-handle', () => {
 
       function Component() {
         React.useEffect(() => {
-          const removeClickListener = addClickListener(targetRef.current, listener);
+          const removeClickListener = addClickListener(
+            targetRef.current,
+            listener
+          );
           const removeClickCaptureListener = addClickCaptureListener(
             targetRef.current,
             listenerCapture
@@ -141,7 +144,10 @@ describe('create-event-handle', () => {
 
       function Component() {
         React.useEffect(() => {
-          const removeClickListener = addClickListener(targetRef.current, listener);
+          const removeClickListener = addClickListener(
+            targetRef.current,
+            listener
+          );
           const removeClickCaptureListener = addClickCaptureListener(
             targetRef.current,
             listenerCapture

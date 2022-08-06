@@ -1,4 +1,9 @@
-/* eslint-env jasmine, jest */
+/**
+ * Copyright (c) Nicolas Gallagher.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 import React from 'react';
 import Pressable from '../';
@@ -21,7 +26,9 @@ describe('components/Pressable', () => {
 
   describe('prop "accessibilityLiveRegion"', () => {
     test('value is set', () => {
-      const { container } = render(<Pressable accessibilityLiveRegion="polite" />);
+      const { container } = render(
+        <Pressable accessibilityLiveRegion="polite" />
+      );
       expect(container.firstChild).toMatchSnapshot();
     });
   });
@@ -68,7 +75,9 @@ describe('components/Pressable', () => {
     act(() => {
       ({ container } = render(
         <Pressable
-          children={({ focused }) => (focused ? <div data-testid="focus-content" /> : null)}
+          children={({ focused }) =>
+            focused ? <div data-testid="focus-content" /> : null
+          }
           onBlur={onBlur}
           onFocus={onFocus}
           ref={ref}
@@ -96,7 +105,14 @@ describe('components/Pressable', () => {
     const onFocus = jest.fn();
     const ref = React.createRef();
     act(() => {
-      render(<Pressable disabled={true} onBlur={onBlur} onFocus={onFocus} ref={ref} />);
+      render(
+        <Pressable
+          disabled={true}
+          onBlur={onBlur}
+          onFocus={onFocus}
+          ref={ref}
+        />
+      );
     });
     const target = createEventTarget(ref.current);
     const body = createEventTarget(document.body);
@@ -118,7 +134,9 @@ describe('components/Pressable', () => {
     act(() => {
       ({ container } = render(
         <Pressable
-          children={({ hovered }) => (hovered ? <div data-testid="hover-content" /> : null)}
+          children={({ hovered }) =>
+            hovered ? <div data-testid="hover-content" /> : null
+          }
           onHoverIn={onHoverIn}
           onHoverOut={onHoverOut}
           ref={ref}
@@ -150,7 +168,9 @@ describe('components/Pressable', () => {
     act(() => {
       ({ container } = render(
         <Pressable
-          children={({ pressed }) => (pressed ? <div data-testid="press-content" /> : null)}
+          children={({ pressed }) =>
+            pressed ? <div data-testid="press-content" /> : null
+          }
           onContextMenu={onContextMenu}
           onPress={onPress}
           onPressIn={onPressIn}
@@ -192,7 +212,9 @@ describe('components/Pressable', () => {
       const [shown, setShown] = React.useState(true);
       return shown ? (
         <Pressable
-          children={({ pressed }) => (pressed ? <div data-testid="press-content" /> : null)}
+          children={({ pressed }) =>
+            pressed ? <div data-testid="press-content" /> : null
+          }
           onPress={(e) => {
             onPress(e);
             setShown(false);

@@ -74,20 +74,6 @@ const Text: React.AbstractComponent<TextProps, HTMLElement & PlatformMethods> =
     const hostRef = React.useRef(null);
     const { direction: contextDirection } = useLocaleContext();
 
-    const classList = [
-      classes.text,
-      hasTextAncestor === true && classes.textHasAncestor,
-      numberOfLines === 1 && classes.textOneLine,
-      numberOfLines != null && numberOfLines > 1 && classes.textMultiLine
-    ];
-    const style = [
-      props.style,
-      numberOfLines != null && numberOfLines > 1 && { WebkitLineClamp: numberOfLines },
-      selectable === true && styles.selectable,
-      selectable === false && styles.notSelectable,
-      onPress && styles.pressable
-    ];
-
     useElementLayout(hostRef, onLayout);
     useResponderEvents(hostRef, {
       onMoveShouldSetResponder,
@@ -216,7 +202,7 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    whiteSpace: 'pre',
+    whiteSpace: 'nowrap',
     wordWrap: 'normal'
   },
   // See #13

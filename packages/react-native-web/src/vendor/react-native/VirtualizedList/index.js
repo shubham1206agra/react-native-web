@@ -1849,7 +1849,7 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     // Mark as high priority if we're close to the start of the first item
     // But only if there are items before the first rendered item
     if (first > 0) {
-      const distStart = offset - this.__getFrameMetricsApprox(first).offset;
+      const distStart = offset - this._getFrameMetricsApprox(first).offset;
       hiPri =
         hiPri ||
         distStart < 0 ||

@@ -213,14 +213,26 @@ type OptionalProps = {|
    */
   maxToRenderPerBatch?: ?number,
   /**
+   * Called once when the scroll position gets within `onStartReachedThreshold` of the rendered
+   * content.
+   */
+  onStartReached?: ?(info: {distanceFromStart: number, ...}) => void,
+  /**
+   * How far from the start (in units of visible length of the list) the leading edge of the
+   * list must be from the start of the content to trigger the `onStartReached` callback.
+   * Thus, a value of 0.5 will trigger `onStartReached` when the start of the content is
+   * within half the visible length of the list.
+   */
+  onStartReachedThreshold?: ?number,
+  /**
    * Called once when the scroll position gets within `onEndReachedThreshold` of the rendered
    * content.
    */
   onEndReached?: ?(info: {distanceFromEnd: number, ...}) => void,
   /**
-   * How far from the end (in units of visible length of the list) the bottom edge of the
+   * How far from the end (in units of visible length of the list) the trailing edge of the
    * list must be from the end of the content to trigger the `onEndReached` callback.
-   * Thus a value of 0.5 will trigger `onEndReached` when the end of the content is
+   * Thus, a value of 0.5 will trigger `onEndReached` when the end of the content is
    * within half the visible length of the list.
    */
   onEndReachedThreshold?: ?number,
@@ -336,9 +348,19 @@ function maxToRenderPerBatchOrDefault(maxToRenderPerBatch: ?number) {
   return maxToRenderPerBatch ?? 10;
 }
 
+// onStartReachedThresholdOrDefault(this.props.onStartReachedThreshold)
+function onStartReachedThresholdOrDefault(onStartReachedThreshold: ?number) {
+  return onStartReachedThreshold ?? 2;
+}
+
 // onEndReachedThresholdOrDefault(this.props.onEndReachedThreshold)
 function onEndReachedThresholdOrDefault(onEndReachedThreshold: ?number) {
   return onEndReachedThreshold ?? 2;
+}
+
+// getScrollingThreshold(visibleLength, onEndReachedThreshold)
+function getScrollingThreshold(threshold: number, visibleLength: number) {
+  return (threshold * visibleLength) / 2;
 }
 
 // scrollEventThrottleOrDefault(this.props.scrollEventThrottle)
@@ -1269,6 +1291,7 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     visibleLength: 0,
   };
   _scrollRef: ?React.ElementRef<any> = null;
+  _sentStartForContentLength = 0;
   _sentEndForContentLength = 0;
   _totalCellLength = 0;
   _totalCellsMeasured = 0;
@@ -1464,7 +1487,7 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     }
     this.props.onLayout && this.props.onLayout(e);
     this._scheduleCellsToRenderUpdate();
-    this._maybeCallOnEndReached();
+    this._maybeCallOnEdgeReached();
   };
 
   _onLayoutEmpty = e => {
@@ -1566,26 +1589,69 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     return !horizontalOrDefault(this.props.horizontal) ? metrics.y : metrics.x;
   }
 
-  _maybeCallOnEndReached() {
-    const {data, getItemCount, onEndReached, onEndReachedThreshold} =
-      this.props;
+  _maybeCallOnEdgeReached() {
+    const {
+      data,
+      getItemCount,
+      onStartReached,
+      onStartReachedThreshold,
+      onEndReached,
+      onEndReachedThreshold,
+      initialScrollIndex,
+    } = this.props;
     const {contentLength, visibleLength, offset} = this._scrollMetrics;
+    const distanceFromStart = offset;
     const distanceFromEnd = contentLength - visibleLength - offset;
-    const threshold =
-      onEndReachedThreshold != null ? onEndReachedThreshold * visibleLength : 2;
+    const startThreshold =
+      onStartReachedThresholdOrDefault(onStartReachedThreshold) * visibleLength;
+    const endThreshold =
+      onEndReachedThresholdOrDefault(onEndReachedThreshold) * visibleLength;
+    const isWithinStartThreshold = distanceFromStart <= startThreshold;
+    const isWithinEndThreshold = distanceFromEnd <= endThreshold;
+    const shouldExecuteNewCallback =
+      this._scrollMetrics.contentLength !== this._sentStartForContentLength &&
+      this._scrollMetrics.contentLength !== this._sentEndForContentLength;
+
+    // First check if the user just scrolled within the end threshold
+    // and call onEndReached only once for a given content length,
+    // and only if onStartReached is not being executed
     if (
       onEndReached &&
-      this.state.last === getItemCount(data) - 1 &&
-      distanceFromEnd < threshold &&
-      this._scrollMetrics.contentLength !== this._sentEndForContentLength
+      isWithinEndThreshold &&
+      shouldExecuteNewCallback &&
+      this.state.last === getItemCount(data) - 1
     ) {
-      // Only call onEndReached once for a given content length
       this._sentEndForContentLength = this._scrollMetrics.contentLength;
       onEndReached({distanceFromEnd});
-    } else if (distanceFromEnd > threshold) {
-      // If the user scrolls away from the end and back again cause
-      // an onEndReached to be triggered again
-      this._sentEndForContentLength = 0;
+    }
+
+      // Next check if the user just scrolled within the start threshold
+      // and call onStartReached only once for a given content length,
+    // and only if onEndReached is not being executed
+    else if (
+      onStartReached &&
+      isWithinStartThreshold &&
+      shouldExecuteNewCallback &&
+      this.state.first === 0 &&
+      // On initial mount when using initialScrollIndex the offset will be 0 initially
+      // and will trigger an unexpected onStartReached. To avoid this we can use
+      // timestamp to differentiate between the initial scroll metrics and when we actually
+      // received the first scroll event.
+      (!initialScrollIndex || this._scrollMetrics.timestamp !== 0)
+    ) {
+      this._sentStartForContentLength = this._scrollMetrics.contentLength;
+      onStartReached({distanceFromStart});
+    }
+
+      // If the user scrolls away from the start or end and back again,
+    // cause onStartReached or onEndReached to be triggered again
+    else {
+      this._sentStartForContentLength = isWithinStartThreshold
+        ? this._sentStartForContentLength
+        : 0;
+      this._sentEndForContentLength = isWithinEndThreshold
+        ? this._sentEndForContentLength
+        : 0;
     }
   }
 
@@ -1610,7 +1676,7 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     }
     this._scrollMetrics.contentLength = this._selectLength({height, width});
     this._scheduleCellsToRenderUpdate();
-    this._maybeCallOnEndReached();
+    this._maybeCallOnEdgeReached();
   };
 
   /* Translates metrics from a scroll event in a parent VirtualizedList into
@@ -1694,7 +1760,7 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     if (!this.props) {
       return;
     }
-    this._maybeCallOnEndReached();
+    this._maybeCallOnEdgeReached();
     if (velocity !== 0) {
       this._fillRateHelper.activate();
     }
@@ -1707,6 +1773,9 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     const {offset, visibleLength, velocity} = this._scrollMetrics;
     const itemCount = this.props.getItemCount(this.props.data);
     let hiPri = false;
+    const onStartReachedThreshold = onStartReachedThresholdOrDefault(
+      this.props.onStartReachedThreshold,
+    );
     const onEndReachedThreshold = onEndReachedThresholdOrDefault(
       this.props.onEndReachedThreshold,
     );
@@ -1714,9 +1783,13 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     // Mark as high priority if we're close to the start of the first item
     // But only if there are items before the first rendered item
     if (first > 0) {
-      const distTop = offset - this._getFrameMetricsApprox(first).offset;
+      const distStart = offset - this.__getFrameMetricsApprox(first).offset;
       hiPri =
-        hiPri || distTop < 0 || (velocity < -2 && distTop < scrollingThreshold);
+        hiPri ||
+        distStart < 0 ||
+        (velocity < -2 &&
+          distStart <
+          getScrollingThreshold(onStartReachedThreshold, visibleLength));
     }
     // Mark as high priority if we're close to the end of the last item
     // But only if there are items after the last rendered item
@@ -1726,7 +1799,9 @@ class VirtualizedList extends React.PureComponent<Props, State> {
       hiPri =
         hiPri ||
         distBottom < 0 ||
-        (velocity > 2 && distBottom < scrollingThreshold);
+        (velocity > 2 &&
+          distBottom <
+          getScrollingThreshold(onEndReachedThreshold, visibleLength));
     }
     // Only trigger high-priority updates if we've actually rendered cells,
     // and with that size estimate, accurately compute how many cells we should render.

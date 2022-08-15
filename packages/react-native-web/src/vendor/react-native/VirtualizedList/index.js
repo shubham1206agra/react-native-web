@@ -1677,8 +1677,8 @@ class VirtualizedList extends React.PureComponent<Props, State> {
       onEndReached({distanceFromEnd});
     }
 
-      // Next check if the user just scrolled within the start threshold
-      // and call onStartReached only once for a given content length,
+    // Next check if the user just scrolled within the start threshold
+    // and call onStartReached only once for a given content length,
     // and only if onEndReached is not being executed
     else if (
       onStartReached &&

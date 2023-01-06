@@ -8,7 +8,7 @@
  * @flow
  */
 
-import type { ImageProps } from './types';
+import type { ImageProps, SourceObject } from './types';
 
 import * as React from 'react';
 import createElement from '../createElement';
@@ -146,6 +146,12 @@ function resolveAssetUri(source): ?string {
   return uri;
 }
 
+function hasSourceDiff(a: SourceObject, b: SourceObject) {
+  return (
+    a.uri !== b.uri || JSON.stringify(a.headers) !== JSON.stringify(b.headers)
+  );
+}
+
 interface ImageStatics {
   getSize: (
     uri: string,
@@ -158,10 +164,12 @@ interface ImageStatics {
   ) => Promise<{| [uri: string]: 'disk/memory' |}>;
 }
 
-const Image: React.AbstractComponent<
+type ImageComponent = React.AbstractComponent<
   ImageProps,
   React.ElementRef<typeof View>
-> = React.forwardRef((props, ref) => {
+>;
+
+const BaseImage: ImageComponent = React.forwardRef((props, ref) => {
   const {
     accessibilityLabel,
     blurRadius,
@@ -332,24 +340,91 @@ const Image: React.AbstractComponent<
   );
 });
 
-Image.displayName = 'Image';
+/**
+ * This component handles specifically loading an image source with header
+ */
+const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
+  // $FlowIgnore
+  const nextSource: SourceObject = props.source;
+  const prevSource = React.useRef<SourceObject>({});
+  const cleanup = React.useRef<Function>(() => {});
+  const [blobUri, setBlobUri] = React.useState('');
+
+  const { onError, onLoadStart } = props;
+
+  React.useEffect(() => {
+    if (!hasSourceDiff(nextSource, prevSource.current)) return;
+
+    // When source changes we want to clean up any old/running requests
+    cleanup.current();
+
+    prevSource.current = nextSource;
+
+    let uri;
+    const abortCtrl = new AbortController();
+    const request = new Request(nextSource.uri, {
+      headers: nextSource.headers,
+      signal: abortCtrl.signal
+    });
+    request.headers.append('accept', 'image/*');
+
+    if (onLoadStart) onLoadStart();
+
+    fetch(request)
+      .then((response) => response.blob())
+      .then((blob) => {
+        uri = URL.createObjectURL(blob);
+        setBlobUri(uri);
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError' && onError) {
+          onError({ nativeEvent: error.message });
+        }
+      });
+
+    // Capture a cleanup function for the current request
+    // The reason for using a Ref is to avoid making this function a dependency
+    // Because the change of a dependency would otherwise would re-trigger a hook
+    cleanup.current = () => {
+      abortCtrl.abort();
+      setBlobUri('');
+      URL.revokeObjectURL(uri);
+    };
+  }, [nextSource, onLoadStart, onError]);
+
+  // Run the cleanup function on unmount
+  React.useEffect(() => cleanup.current, []);
+
+  const propsToPass = {
+    ...props,
+    // Omit load start because we already triggered it here
+    onLoadStart: undefined,
+    source: { ...nextSource, uri: blobUri }
+  };
+
+  return <BaseImage ref={ref} {...propsToPass} />;
+});
 
 // $FlowIgnore: This is the correct type, but casting makes it unhappy since the variables aren't defined yet
-const ImageWithStatics = (Image: React.AbstractComponent<
-  ImageProps,
-  React.ElementRef<typeof View>
-> &
-  ImageStatics);
+const Image: ImageComponent & ImageStatics = React.forwardRef((props, ref) => {
+  if (props.source && props.source.headers) {
+    return <ImageWithHeaders ref={ref} {...props} />;
+  }
 
-ImageWithStatics.getSize = function (uri, success, failure) {
+  return <BaseImage ref={ref} {...props} />;
+});
+
+Image.displayName = 'Image';
+
+Image.getSize = function (uri, success, failure) {
   ImageLoader.getSize(uri, success, failure);
 };
 
-ImageWithStatics.prefetch = function (uri) {
+Image.prefetch = function (uri) {
   return ImageLoader.prefetch(uri);
 };
 
-ImageWithStatics.queryCache = function (uris) {
+Image.queryCache = function (uris) {
   return ImageLoader.queryCache(uris);
 };
 
@@ -405,4 +480,4 @@ const resizeModeStyles = StyleSheet.create({
   }
 });
 
-export default ImageWithStatics;
+export default Image;

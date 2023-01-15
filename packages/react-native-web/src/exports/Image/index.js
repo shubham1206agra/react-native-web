@@ -397,9 +397,12 @@ const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
 
   const propsToPass = {
     ...props,
-    // Omit load start because we already triggered it here
+    // Omit `onLoadStart` because we trigger it in the current scope
     onLoadStart: undefined,
-    source: { ...nextSource, uri: blobUri }
+    // Until the current component resolves the request (using headers)
+    // we skip forwarding the source so the base component doesn't attempt
+    // to load the original source
+    source: blobUri ? { ...nextSource, uri: blobUri } : undefined
   };
 
   return <BaseImage ref={ref} {...propsToPass} />;

@@ -84,8 +84,7 @@ export default class Dimensions {
      * iOS does not update viewport dimensions on keyboard open/close
      * So, we are using window.visualViewport(https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport)
      * instead of document.documentElement.clientHeight
-     * But we are still using document.documentElement.clientWidth as fallback
-     * because it was requested by the original repo owner
+     * document.documentElement.clientWidth is used as a fallback
      */
     if (win.visualViewport) {
       const visualViewport = win.visualViewport;
@@ -144,8 +143,8 @@ export default class Dimensions {
 
 if (canUseDOM) {
   /*
-   * Same here as in _update method
-   * keeping the previous implementation as fallback
+   * Same as in _update method, we are
+   * keeping the previous implementation as a fallback
    */
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', Dimensions._update, false);

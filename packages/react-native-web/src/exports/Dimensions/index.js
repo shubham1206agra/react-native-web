@@ -77,13 +77,30 @@ export default class Dimensions {
     }
 
     const win = window;
-    const docEl = win.document.documentElement;
+    let height;
+    let width;
+
+    /*
+     * iOS does not update viewport dimensions on keyboard open/close
+     * So, we are using window.visualViewport(https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport)
+     * instead of document.documentElement.clientHeight
+     * document.documentElement.clientWidth is used as a fallback
+     */
+    if (win.visualViewport) {
+      const visualViewport = win.visualViewport;
+      height = Math.round(visualViewport.height);
+      width = Math.round(visualViewport.width);
+    } else {
+      const docEl = win.document.documentElement;
+      height = docEl.clientHeight;
+      width = docEl.clientWidth;
+    }
 
     dimensions.window = {
       fontScale: 1,
-      height: docEl.clientHeight,
+      height,
       scale: win.devicePixelRatio || 1,
-      width: docEl.clientWidth
+      width
     };
 
     dimensions.screen = {
@@ -125,5 +142,13 @@ export default class Dimensions {
 }
 
 if (canUseDOM) {
-  window.addEventListener('resize', Dimensions._update, false);
+  /*
+   * Same as in _update method, we are
+   * keeping the previous implementation as a fallback
+   */
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', Dimensions._update, false);
+  } else {
+    window.addEventListener('resize', Dimensions._update, false);
+  }
 }

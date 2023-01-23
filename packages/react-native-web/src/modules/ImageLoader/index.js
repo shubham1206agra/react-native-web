@@ -144,7 +144,42 @@ const ImageLoader = {
     };
     image.src = uri;
     requests[`${id}`] = image;
+
     return id;
+  },
+  loadWithHeaders(source: ImageSource): LoadRequest {
+    let loadRequest: LoadRequest;
+    let uri: string;
+    const abortCtrl = new AbortController();
+    const request = new Request(source.uri, {
+      headers: source.headers,
+      signal: abortCtrl.signal
+    });
+    request.headers.append('accept', 'image/*');
+
+    const promise = fetch(request)
+      .then((response) => response.blob())
+      .then((blob) => {
+        uri = URL.createObjectURL(blob);
+        return uri;
+      })
+      .catch((error) => {
+        if (error.name === 'AbortError') {
+          return '';
+        }
+
+        throw error;
+      });
+
+    return {
+      promise,
+      source,
+      cancel: () => {
+        abortCtrl.abort();
+        if (loadRequest) loadRequest.cancel();
+        URL.revokeObjectURL(uri);
+      }
+    };
   },
   prefetch(uri: string): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -170,6 +205,17 @@ const ImageLoader = {
     });
     return Promise.resolve(result);
   }
+};
+
+export type LoadRequest = {|
+  cancel: Function,
+  source: ImageSource,
+  promise: Promise<string>
+|};
+
+export type ImageSource = {
+  uri: string,
+  headers: { [key: string]: string }
 };
 
 export default ImageLoader;

@@ -8,7 +8,8 @@
  * @flow
  */
 
-import type { ImageProps, SourceObject } from './types';
+import type { ImageSource, LoadRequest } from '../../modules/ImageLoader';
+import type { ImageProps } from './types';
 
 import * as React from 'react';
 import createElement from '../createElement';
@@ -146,7 +147,17 @@ function resolveAssetUri(source): ?string {
   return uri;
 }
 
-function hasSourceDiff(a: SourceObject, b: SourceObject) {
+function raiseOnErrorEvent(uri, { onError, onLoadEnd }) {
+  if (onError) {
+    onError({
+      nativeEvent: {
+        error: `Failed to load resource ${uri} (404)`
+      }
+    });
+  }
+  if (onLoadEnd) onLoadEnd();
+}
+function hasSourceDiff(a: ImageSource, b: ImageSource) {
   return (
     a.uri !== b.uri || JSON.stringify(a.headers) !== JSON.stringify(b.headers)
   );
@@ -287,16 +298,7 @@ const BaseImage: ImageComponent = React.forwardRef((props, ref) => {
         },
         function error() {
           updateState(ERRORED);
-          if (onError) {
-            onError({
-              nativeEvent: {
-                error: `Failed to load resource ${uri} (404)`
-              }
-            });
-          }
-          if (onLoadEnd) {
-            onLoadEnd();
-          }
+          raiseOnErrorEvent(uri, { onError, onLoadEnd });
         }
       );
     }
@@ -345,55 +347,35 @@ const BaseImage: ImageComponent = React.forwardRef((props, ref) => {
  */
 const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
   // $FlowIgnore
-  const nextSource: SourceObject = props.source;
-  const prevSource = React.useRef<SourceObject>({});
-  const cleanup = React.useRef<Function>(() => {});
+  const nextSource: ImageSource = props.source;
   const [blobUri, setBlobUri] = React.useState('');
+  const request = React.useRef<LoadRequest>({
+    cancel: () => {},
+    source: { uri: '', headers: {} },
+    promise: Promise.resolve('')
+  });
 
-  const { onError, onLoadStart } = props;
+  const { onError, onLoadStart, onLoadEnd } = props;
 
   React.useEffect(() => {
-    if (!hasSourceDiff(nextSource, prevSource.current)) return;
+    if (!hasSourceDiff(nextSource, request.current.source)) return;
 
     // When source changes we want to clean up any old/running requests
-    cleanup.current();
-
-    prevSource.current = nextSource;
-
-    let uri;
-    const abortCtrl = new AbortController();
-    const request = new Request(nextSource.uri, {
-      headers: nextSource.headers,
-      signal: abortCtrl.signal
-    });
-    request.headers.append('accept', 'image/*');
+    request.current.cancel();
 
     if (onLoadStart) onLoadStart();
 
-    fetch(request)
-      .then((response) => response.blob())
-      .then((blob) => {
-        uri = URL.createObjectURL(blob);
-        setBlobUri(uri);
-      })
-      .catch((error) => {
-        if (error.name !== 'AbortError' && onError) {
-          onError({ nativeEvent: error.message });
-        }
-      });
+    request.current = ImageLoader.loadWithHeaders(nextSource);
 
-    // Capture a cleanup function for the current request
-    // The reason for using a Ref is to avoid making this function a dependency
-    // Because the change of a dependency would otherwise would re-trigger a hook
-    cleanup.current = () => {
-      abortCtrl.abort();
-      setBlobUri('');
-      URL.revokeObjectURL(uri);
-    };
-  }, [nextSource, onLoadStart, onError]);
+    request.current.promise
+      .then((uri) => setBlobUri(uri))
+      .catch(() =>
+        raiseOnErrorEvent(request.current.source.uri, { onError, onLoadEnd })
+      );
+  }, [nextSource, onLoadStart, onError, onLoadEnd]);
 
-  // Run the cleanup function on unmount
-  React.useEffect(() => cleanup.current, []);
+  // Cancel any request on unmount
+  React.useEffect(() => request.current.cancel, []);
 
   const propsToPass = {
     ...props,

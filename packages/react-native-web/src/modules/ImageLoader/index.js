@@ -125,6 +125,7 @@ const ImageLoader = {
     image.onload = (nativeEvent) => {
       // avoid blocking the main thread
       const onDecode = () => {
+        // Append `source` to match RN's ImageLoadEvent interface
         nativeEvent.source = {
           uri: image.src,
           width: image.naturalWidth,
@@ -148,7 +149,6 @@ const ImageLoader = {
     return id;
   },
   loadWithHeaders(source: ImageSource): LoadRequest {
-    let loadRequest: LoadRequest;
     let uri: string;
     const abortCtrl = new AbortController();
     const request = new Request(source.uri, {
@@ -176,7 +176,6 @@ const ImageLoader = {
       source,
       cancel: () => {
         abortCtrl.abort();
-        if (loadRequest) loadRequest.cancel();
         URL.revokeObjectURL(uri);
       }
     };

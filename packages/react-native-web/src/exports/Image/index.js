@@ -157,6 +157,7 @@ function raiseOnErrorEvent(uri, { onError, onLoadEnd }) {
   }
   if (onLoadEnd) onLoadEnd();
 }
+
 function hasSourceDiff(a: ImageSource, b: ImageSource) {
   return (
     a.uri !== b.uri || JSON.stringify(a.headers) !== JSON.stringify(b.headers)
@@ -342,8 +343,11 @@ const BaseImage: ImageComponent = React.forwardRef((props, ref) => {
   );
 });
 
+BaseImage.displayName = 'Image';
+
 /**
- * This component handles specifically loading an image source with header
+ * This component handles specifically loading an image source with headers
+ * default source is never loaded using headers
  */
 const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
   // $FlowIgnore
@@ -391,25 +395,25 @@ const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
 });
 
 // $FlowIgnore: This is the correct type, but casting makes it unhappy since the variables aren't defined yet
-const Image: ImageComponent & ImageStatics = React.forwardRef((props, ref) => {
-  if (props.source && props.source.headers) {
-    return <ImageWithHeaders ref={ref} {...props} />;
+const ImageWithStatics: ImageComponent & ImageStatics = React.forwardRef(
+  (props, ref) => {
+    if (props.source && props.source.headers) {
+      return <ImageWithHeaders ref={ref} {...props} />;
+    }
+
+    return <BaseImage ref={ref} {...props} />;
   }
+);
 
-  return <BaseImage ref={ref} {...props} />;
-});
-
-Image.displayName = 'Image';
-
-Image.getSize = function (uri, success, failure) {
+ImageWithStatics.getSize = function (uri, success, failure) {
   ImageLoader.getSize(uri, success, failure);
 };
 
-Image.prefetch = function (uri) {
+ImageWithStatics.prefetch = function (uri) {
   return ImageLoader.prefetch(uri);
 };
 
-Image.queryCache = function (uris) {
+ImageWithStatics.queryCache = function (uris) {
   return ImageLoader.queryCache(uris);
 };
 
@@ -465,4 +469,4 @@ const resizeModeStyles = StyleSheet.create({
   }
 });
 
-export default Image;
+export default ImageWithStatics;

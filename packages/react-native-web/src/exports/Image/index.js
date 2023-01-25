@@ -350,7 +350,7 @@ BaseImage.displayName = 'Image';
  * default source is never loaded using headers
  */
 const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
-  // $FlowIgnore
+  // $FlowIgnore: This component would only be rendered when `source` matches `ImageSource`
   const nextSource: ImageSource = props.source;
   const [blobUri, setBlobUri] = React.useState('');
   const request = React.useRef<LoadRequest>({
@@ -373,6 +373,8 @@ const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
       onLoadStart();
     }
 
+    // Store a ref for the current request so when know what's the last loaded source,
+    // and so we can cancel it if a different source is passed through props
     request.current = ImageLoader.loadWithHeaders(nextSource);
 
     request.current.promise
@@ -388,7 +390,8 @@ const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
   const propsToPass = {
     ...props,
 
-    // Omit `onLoadStart` because we trigger it in the current scope
+    // `onLoadStart` is called from the current component
+    // We skip passing it down to prevent BaseImage raising it a 2nd time
     onLoadStart: undefined,
 
     // Until the current component resolves the request (using headers)

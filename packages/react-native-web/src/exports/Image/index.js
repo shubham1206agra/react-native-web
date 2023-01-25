@@ -362,12 +362,16 @@ const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
   const { onError, onLoadStart, onLoadEnd } = props;
 
   React.useEffect(() => {
-    if (!hasSourceDiff(nextSource, request.current.source)) return;
+    if (!hasSourceDiff(nextSource, request.current.source)) {
+      return;
+    }
 
     // When source changes we want to clean up any old/running requests
     request.current.cancel();
 
-    if (onLoadStart) onLoadStart();
+    if (onLoadStart) {
+      onLoadStart();
+    }
 
     request.current = ImageLoader.loadWithHeaders(nextSource);
 
@@ -383,8 +387,10 @@ const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
 
   const propsToPass = {
     ...props,
+
     // Omit `onLoadStart` because we trigger it in the current scope
     onLoadStart: undefined,
+
     // Until the current component resolves the request (using headers)
     // we skip forwarding the source so the base component doesn't attempt
     // to load the original source

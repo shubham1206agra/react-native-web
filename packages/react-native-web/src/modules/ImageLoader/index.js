@@ -150,10 +150,10 @@ const ImageLoader = {
   },
   loadWithHeaders(source: ImageSource): LoadRequest {
     let uri: string;
-    const abortCtrl = new AbortController();
+    const abortController = new AbortController();
     const request = new Request(source.uri, {
       headers: source.headers,
-      signal: abortCtrl.signal
+      signal: abortController.signal
     });
     request.headers.append('accept', 'image/*');
 
@@ -175,7 +175,7 @@ const ImageLoader = {
       promise,
       source,
       cancel: () => {
-        abortCtrl.abort();
+        abortController.abort();
         URL.revokeObjectURL(uri);
       }
     };

@@ -373,7 +373,7 @@ const ImageWithHeaders: ImageComponent = React.forwardRef((props, ref) => {
       onLoadStart();
     }
 
-    // Store a ref for the current request so when know what's the last loaded source,
+    // Store a ref for the current load request so we know what's the last loaded source,
     // and so we can cancel it if a different source is passed through props
     request.current = ImageLoader.loadWithHeaders(nextSource);
 

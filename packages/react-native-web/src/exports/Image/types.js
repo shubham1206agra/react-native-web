@@ -102,8 +102,8 @@ export type ImageStyle = {
   tintColor?: ColorValue
 };
 
-export type ImageProps = {
-  ...ViewProps,
+export type ImageProps = {|
+  ...$Exact<ViewProps>,
   blurRadius?: number,
   defaultSource?: Source,
   draggable?: boolean,
@@ -116,4 +116,4 @@ export type ImageProps = {
   resizeMode?: ResizeMode,
   source?: Source,
   style?: GenericStyleProp<ImageStyle>
-};
+|};

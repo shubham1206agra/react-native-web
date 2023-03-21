@@ -47,6 +47,8 @@ type Item = any;
 
 const __DEV__ = process.env.NODE_ENV !== 'production';
 
+const SCROLL_WHEEL_SENSITIVITY = 0.5;
+
 export type Separators = {
   highlight: () => void,
   unhighlight: () => void,
@@ -817,7 +819,7 @@ class VirtualizedList extends React.PureComponent<Props, State> {
       const delta = this.props.horizontal
         ? ev.deltaX || ev.wheelDeltaX
         : ev.deltaY || ev.wheelDeltaY;
-      let leftoverDelta = delta;
+      let leftoverDelta = delta * SCROLL_WHEEL_SENSITIVITY;
       if (isEventTargetScrollable) {
         leftoverDelta = delta < 0
           ? Math.min(delta + scrollOffset, 0)

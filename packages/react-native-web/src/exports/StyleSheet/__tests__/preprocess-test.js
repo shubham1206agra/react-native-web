@@ -8,6 +8,145 @@
 import { preprocess } from '../preprocess';
 
 describe('StyleSheet/preprocess', () => {
+  describe('non-standard styles', () => {
+    test('converts non-standard logical styles', () => {
+      expect(
+        preprocess({
+          end: 1,
+          marginEnd: 1,
+          marginHorizontal: 1,
+          marginStart: 1,
+          marginVertical: 1,
+          paddingEnd: 1,
+          paddingHorizontal: 1,
+          paddingStart: 1,
+          paddingVertical: 1,
+          start: 1
+        })
+      ).toEqual({
+        insetInlineEnd: 1,
+        insetInlineStart: 1,
+        marginBlock: 1,
+        marginInline: 1,
+        marginInlineEnd: 1,
+        marginInlineStart: 1,
+        paddingBlock: 1,
+        paddingInline: 1,
+        paddingInlineEnd: 1,
+        paddingInlineStart: 1
+      });
+    });
+
+    test('respects standard logical styles', () => {
+      expect(
+        preprocess({
+          end: 1,
+          marginEnd: 1,
+          marginHorizontal: 1,
+          marginStart: 1,
+          marginVertical: 1,
+          paddingEnd: 1,
+          paddingHorizontal: 1,
+          paddingStart: 1,
+          paddingVertical: 1,
+          start: 1,
+          // standard
+          insetInlineEnd: 2,
+          insetInlineStart: 2,
+          marginBlock: 2,
+          marginInline: 2,
+          marginInlineEnd: 2,
+          marginInlineStart: 2,
+          paddingBlock: 2,
+          paddingInline: 2,
+          paddingInlineEnd: 2,
+          paddingInlineStart: 2
+        })
+      ).toEqual({
+        insetInlineEnd: 2,
+        insetInlineStart: 2,
+        marginBlock: 2,
+        marginInline: 2,
+        marginInlineEnd: 2,
+        marginInlineStart: 2,
+        paddingBlock: 2,
+        paddingInline: 2,
+        paddingInlineEnd: 2,
+        paddingInlineStart: 2
+      });
+    });
+
+    test('converts non-standard textAlignVertical', () => {
+      expect(
+        preprocess({
+          textAlignVertical: 'center'
+        })
+      ).toEqual({
+        verticalAlign: 'middle'
+      });
+
+      expect(
+        preprocess({
+          verticalAlign: 'top',
+          textAlignVertical: 'center'
+        })
+      ).toEqual({
+        verticalAlign: 'top'
+      });
+    });
+
+    test('aspectRatio', () => {
+      expect(preprocess({ aspectRatio: 9 / 16 })).toEqual({
+        aspectRatio: '0.5625'
+      });
+    });
+
+    test('fontVariant', () => {
+      expect(
+        preprocess({ fontVariant: 'common-ligatures small-caps' })
+      ).toEqual({
+        fontVariant: 'common-ligatures small-caps'
+      });
+
+      expect(
+        preprocess({ fontVariant: ['common-ligatures', 'small-caps'] })
+      ).toEqual({
+        fontVariant: 'common-ligatures small-caps'
+      });
+    });
+
+    describe('transform', () => {
+      // passthrough if transform value is ever a string
+      test('string', () => {
+        const transform =
+          'perspective(50px) scaleX(20) translateX(20px) rotate(20deg)';
+        const style = { transform };
+        const resolved = preprocess(style);
+
+        expect(resolved).toEqual({ transform });
+      });
+
+      test('array', () => {
+        const style = {
+          transform: [
+            { perspective: 50 },
+            { scaleX: 20 },
+            { translateX: 20 },
+            { rotate: '20deg' },
+            { matrix: [1, 2, 3, 4, 5, 6] },
+            { matrix3d: [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4] }
+          ]
+        };
+        const resolved = preprocess(style);
+
+        expect(resolved).toEqual({
+          transform:
+            'perspective(50px) scaleX(20) translateX(20px) rotate(20deg) matrix(1,2,3,4,5,6) matrix3d(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4)'
+        });
+      });
+    });
+  });
+
   describe('preprocesses multiple shadow styles into a single declaration', () => {
     test('shadowColor only', () => {
       expect(preprocess({ shadowColor: 'red' })).toEqual({

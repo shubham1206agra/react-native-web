@@ -1,9 +1,8 @@
 import React from 'react';
 import ScrollView from '../';
-import { act } from 'react-dom/test-utils';
 import { createEventTarget } from 'dom-event-testing-library';
 import { findDOMNode } from 'react-dom';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 
 describe('components/ScrollView', () => {
   describe('prop "centerContent"', () => {
@@ -69,14 +68,12 @@ describe('components/ScrollView', () => {
       let rerender;
       act(() => {
         ({ rerender } = render(
-          <ScrollView nativeID="123" ref={ref} style={{ borderWidth: 5 }} />
+          <ScrollView id="123" ref={ref} style={{ borderWidth: 5 }} />
         ));
       });
       expect(ref).toHaveBeenCalledTimes(1);
       act(() => {
-        rerender(
-          <ScrollView nativeID="1234" ref={ref} style={{ borderWidth: 6 }} />
-        );
+        rerender(<ScrollView id="1234" ref={ref} style={{ borderWidth: 6 }} />);
       });
       expect(ref).toHaveBeenCalledTimes(1);
     });
@@ -94,7 +91,6 @@ describe('components/ScrollView', () => {
       expect(typeof node.measure === 'function').toBe(true);
       expect(typeof node.measureLayout === 'function').toBe(true);
       expect(typeof node.measureInWindow === 'function').toBe(true);
-      expect(typeof node.setNativeProps === 'function').toBe(true);
       // Does it have the scrollview methods?
       expect(typeof node.getScrollResponder === 'function').toBe(true);
       expect(typeof node.getScrollableNode === 'function').toBe(true);

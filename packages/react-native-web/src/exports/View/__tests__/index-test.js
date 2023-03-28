@@ -7,10 +7,8 @@
 
 import React from 'react';
 import View from '../';
-import StyleSheet from '../../StyleSheet';
-import { act } from 'react-dom/test-utils';
-import { createEventTarget } from 'dom-event-testing-library';
-import { render } from '@testing-library/react';
+import { createEventTarget, setPointerEvent } from 'dom-event-testing-library';
+import { act, render } from '@testing-library/react';
 
 describe('components/View', () => {
   test('default', () => {
@@ -51,42 +49,40 @@ describe('components/View', () => {
     });
   });
 
-  describe('prop "accessibilityLabel"', () => {
+  describe('prop "aria-label"', () => {
     test('value is set', () => {
-      const { container } = render(
-        <View accessibilityLabel="accessibility label" />
-      );
+      const { container } = render(<View aria-label="accessibility label" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
 
-  describe('prop "accessibilityLabelledBy"', () => {
+  describe('prop "aria-labelledby"', () => {
     test('value is set', () => {
-      const { container } = render(<View accessibilityLabelledBy="123" />);
+      const { container } = render(<View aria-labelledby="123" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
 
-  describe('prop "accessibilityLiveRegion"', () => {
+  describe('prop "aria-live"', () => {
     test('value is set', () => {
-      const { container } = render(<View accessibilityLiveRegion="polite" />);
+      const { container } = render(<View aria-live="polite" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
 
-  describe('prop "accessibilityRole"', () => {
+  describe('prop "role"', () => {
     test('value is set', () => {
-      const { container } = render(<View accessibilityRole="none" />);
+      const { container } = render(<View role="none" />);
       expect(container.firstChild).toMatchSnapshot();
     });
 
     test('value is "button"', () => {
-      const { container } = render(<View accessibilityRole="button" />);
+      const { container } = render(<View role="button" />);
       expect(container.firstChild).toMatchSnapshot();
     });
 
     test('value alters HTML element', () => {
-      const { container } = render(<View accessibilityRole="article" />);
+      const { container } = render(<View role="article" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
@@ -206,6 +202,21 @@ describe('components/View', () => {
     });
   });
 
+  describe('prop "onClick"', () => {
+    test('is called', () => {
+      const onClick = jest.fn();
+      const ref = React.createRef();
+      act(() => {
+        render(<View onClick={onClick} ref={ref} />);
+      });
+      const target = createEventTarget(ref.current);
+      act(() => {
+        target.click();
+      });
+      expect(onClick).toBeCalled();
+    });
+  });
+
   describe('prop "onFocus"', () => {
     test('is called', () => {
       const onFocus = jest.fn();
@@ -219,6 +230,28 @@ describe('components/View', () => {
         target.blur();
       });
       expect(onFocus).toBeCalled();
+    });
+  });
+
+  describe('prop "onPointerDown"', () => {
+    beforeEach(() => {
+      setPointerEvent(true);
+    });
+    afterEach(() => {
+      setPointerEvent(false);
+    });
+
+    test('is called', () => {
+      const onPointerDown = jest.fn();
+      const ref = React.createRef();
+      act(() => {
+        render(<View onPointerDown={onPointerDown} ref={ref} />);
+      });
+      const target = createEventTarget(ref.current);
+      act(() => {
+        target.pointerdown({ pointerType: 'touch' });
+      });
+      expect(onPointerDown).toBeCalled();
     });
   });
 
@@ -253,52 +286,6 @@ describe('components/View', () => {
       expect(typeof node.measure === 'function');
       expect(typeof node.measureLayout === 'function');
       expect(typeof node.measureInWindow === 'function');
-      expect(typeof node.setNativeProps === 'function');
-    });
-
-    describe('setNativeProps method', () => {
-      test('works with react-native props', () => {
-        const ref = React.createRef();
-        const { container } = render(<View ref={ref} />);
-        const node = ref.current;
-        node.setNativeProps({
-          accessibilityLabel: 'label',
-          pointerEvents: 'box-only',
-          style: {
-            marginHorizontal: 10,
-            shadowColor: 'black',
-            shadowWidth: 2,
-            textAlignVertical: 'top'
-          }
-        });
-        expect(container.firstChild).toMatchSnapshot();
-      });
-
-      test('style updates as expected', () => {
-        const ref = React.createRef();
-        const styles = StyleSheet.create({ root: { color: 'red' } });
-        // initial render
-        const { container, rerender } = render(
-          <View ref={ref} style={[styles.root, { width: 10 }]} />
-        );
-        const node = ref.current;
-        expect(container.firstChild).toMatchSnapshot();
-        // set native props
-        node.setNativeProps({
-          style: { color: 'orange', height: 20, width: 20 }
-        });
-        expect(container.firstChild).toMatchSnapshot();
-        // set native props again
-        node.setNativeProps({ style: { width: 30 } });
-        expect(container.firstChild).toMatchSnapshot();
-        node.setNativeProps({ style: { width: 30 } });
-        node.setNativeProps({ style: { width: 30 } });
-        node.setNativeProps({ style: { width: 30 } });
-        expect(container.firstChild).toMatchSnapshot();
-        // update render
-        rerender(<View ref={ref} style={[styles.root, { width: 40 }]} />);
-        expect(container.firstChild).toMatchSnapshot();
-      });
     });
   });
 

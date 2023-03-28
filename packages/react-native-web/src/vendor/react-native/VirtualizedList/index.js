@@ -10,7 +10,6 @@
 
 import Batchinator from '../Batchinator';
 import FillRateHelper from '../FillRateHelper';
-import findNodeHandle from '../../../exports/findNodeHandle';
 import RefreshControl from '../../../exports/RefreshControl';
 import ScrollView from '../../../exports/ScrollView';
 import StyleSheet from '../../../exports/StyleSheet';
@@ -644,7 +643,7 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     if (this._scrollRef && this._scrollRef.getScrollableNode) {
       return this._scrollRef.getScrollableNode();
     } else {
-      return findNodeHandle(this._scrollRef);
+      return this._scrollRef;
     }
   }
 
@@ -655,12 +654,6 @@ class VirtualizedList extends React.PureComponent<Props, State> {
       return this._scrollRef.getScrollRef();
     } else {
       return this._scrollRef;
-    }
-  }
-
-  setNativeProps(props: Object) {
-    if (this._scrollRef) {
-      this._scrollRef.setNativeProps(props);
     }
   }
 
@@ -1052,10 +1045,10 @@ class VirtualizedList extends React.PureComponent<Props, State> {
           key="$header">
           <View
             onLayout={this._onLayoutHeader}
-            style={StyleSheet.compose(
+            style={[
               inversionStyle,
               this.props.ListHeaderComponentStyle,
-            )}>
+            ]}>
             {
               // $FlowFixMe[incompatible-type] - Typing ReactNativeComponent revealed errors
               element
@@ -1183,7 +1176,7 @@ class VirtualizedList extends React.PureComponent<Props, State> {
               element.props.onLayout(event);
             }
           },
-          style: StyleSheet.compose(inversionStyle, element.props.style),
+          style: [inversionStyle, element.props.style],
         }),
       );
     }
@@ -1201,10 +1194,10 @@ class VirtualizedList extends React.PureComponent<Props, State> {
           key="$footer">
           <View
             onLayout={this._onLayoutFooter}
-            style={StyleSheet.compose(
+            style={[
               inversionStyle,
               this.props.ListFooterComponentStyle,
-            )}>
+            ]}>
             {
               // $FlowFixMe[incompatible-type] - Typing ReactNativeComponent revealed errors
               element
@@ -2354,10 +2347,10 @@ function describeNestedLists(childList: {
 
 const styles = StyleSheet.create({
   verticallyInverted: {
-    transform: [{scaleY: -1}],
+    transform: 'scaleY(-1)',
   },
   horizontallyInverted: {
-    transform: [{scaleX: -1}],
+    transform: 'scaleX(-1)',
   },
   row: {
     flexDirection: 'row',

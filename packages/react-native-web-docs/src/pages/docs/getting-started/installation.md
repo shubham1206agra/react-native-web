@@ -30,14 +30,7 @@ npm install --save-dev babel-plugin-react-native-web
 
 ### Expo
 
-[Expo](https://expo.io) is a framework and a platform for universal React applications. [Expo for Web](https://docs.expo.io/workflow/web/) uses React Native for Web, provides dozens of additional cross-platform APIs, includes web build optimizations, and is compatibile with the broader React Native ecosystem.
-
-```shell
-npx expo-cli init my-app
-cd my-app
-npm install react-dom react-native-web
-npx expo-cli start
-```
+[Expo](https://expo.dev) is a framework and a platform for universal React applications. [Expo for Web](https://docs.expo.dev/workflow/web/) uses React Native for Web, provides dozens of additional cross-platform APIs, includes web build optimizations, and is compatible with the broader React Native ecosystem. See the Expo docs for more information.
 
 ### Create React App
 
@@ -49,13 +42,3 @@ cd my-app
 npm install react-native-web
 npm start
 ```
-
-### Integrations
-
-Visit the [React Native Directory](https://reactnative.directory/?web=true) to find React Native packages with known web support. Popular web frameworks maintain example integrations.
-
-* [Docz](https://github.com/doczjs/docz/tree/master/examples/react-native)
-* [Gatsby](https://github.com/slorber/gatsby-plugin-react-native-web)
-* [Next.js](https://github.com/zeit/next.js/tree/master/examples/with-react-native-web) (and [example recipes](https://gist.github.com/necolas/f9034091723f1b279be86c7429eb0c96))
-* [Razzle](https://github.com/jaredpalmer/razzle/tree/master/examples/with-react-native-web)
-* [Styleguidist](https://github.com/styleguidist/react-styleguidist/tree/master/examples/react-native)

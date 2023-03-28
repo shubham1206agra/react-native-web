@@ -7,9 +7,8 @@
 
 import CheckBox from '../';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 import { createEventTarget } from 'dom-event-testing-library';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 
 function findCheckbox(container) {
   return container.firstChild.querySelector('input');
@@ -19,7 +18,7 @@ describe('CheckBox', () => {
   describe('prop "accessibilityLabel"', () => {
     test('value is set', () => {
       const { container } = render(
-        <CheckBox accessibilityLabel="accessibility label" />
+        <CheckBox aria-label="accessibility label" />
       );
       expect(container.firstChild).toMatchSnapshot();
     });
@@ -27,7 +26,7 @@ describe('CheckBox', () => {
 
   describe('prop "accessibilityReadOnly"', () => {
     test('value is set', () => {
-      const { container } = render(<CheckBox accessibilityReadOnly={true} />);
+      const { container } = render(<CheckBox aria-readonly={true} />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
@@ -62,7 +61,7 @@ describe('CheckBox', () => {
 
   describe('prop "nativeID"', () => {
     test('value is set', () => {
-      const { container } = render(<CheckBox nativeID="123" />);
+      const { container } = render(<CheckBox id="123" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });

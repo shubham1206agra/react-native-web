@@ -20,6 +20,7 @@ import PixelRatio from '../PixelRatio';
 import StyleSheet from '../StyleSheet';
 import TextAncestorContext from '../Text/TextAncestorContext';
 import View from '../View';
+import { warnOnce } from '../../modules/warnOnce';
 
 export type { ImageProps };
 
@@ -51,9 +52,22 @@ function createTintColorSVG(tintColor, id) {
   ) : null;
 }
 
-function getFlatStyle(style, blurRadius, filterId) {
+function getFlatStyle(style, blurRadius, filterId, tintColorProp) {
   const flatStyle = StyleSheet.flatten(style);
   const { filter, resizeMode, shadowOffset, tintColor } = flatStyle;
+
+  if (flatStyle.resizeMode) {
+    warnOnce(
+      'Image.style.resizeMode',
+      'Image: style.resizeMode is deprecated. Please use props.resizeMode.'
+    );
+  }
+  if (flatStyle.tintColor) {
+    warnOnce(
+      'Image.style.tintColor',
+      'Image: style.tintColor is deprecated. Please use props.tintColor.'
+    );
+  }
 
   // Add CSS filters
   // React Native exposes these features as props and proprietary styles
@@ -72,7 +86,7 @@ function getFlatStyle(style, blurRadius, filterId) {
       filters.push(`drop-shadow(${shadowString})`);
     }
   }
-  if (tintColor && filterId != null) {
+  if ((tintColorProp || tintColor) && filterId != null) {
     filters.push(`url(#tint-${filterId})`);
   }
 
@@ -188,7 +202,7 @@ type ImageComponent = React.AbstractComponent<
 
 const BaseImage: ImageComponent = React.forwardRef((props, ref) => {
   const {
-    accessibilityLabel,
+    'aria-label': ariaLabel,
     blurRadius,
     defaultSource,
     draggable,
@@ -223,12 +237,14 @@ const BaseImage: ImageComponent = React.forwardRef((props, ref) => {
     state === LOADED ||
     isCached ||
     (state === LOADING && defaultSource == null);
-  const [flatStyle, _resizeMode, filter, tintColor] = getFlatStyle(
+  const [flatStyle, _resizeMode, filter, _tintColor] = getFlatStyle(
     style,
     blurRadius,
-    filterRef.current
+    filterRef.current,
+    props.tintColor
   );
   const resizeMode = props.resizeMode || _resizeMode || 'cover';
+  const tintColor = props.tintColor || _tintColor;
   const selectedSource = shouldDisplaySource ? source : defaultSource;
   const displayImageUri = resolveAssetUri(selectedSource);
   const imageSizeStyle = resolveAssetDimensions(selectedSource);
@@ -238,7 +254,7 @@ const BaseImage: ImageComponent = React.forwardRef((props, ref) => {
   // Accessibility image allows users to trigger the browser's image context menu
   const hiddenImage = displayImageUri
     ? createElement('img', {
-        alt: accessibilityLabel || '',
+        alt: ariaLabel || '',
         style: styles.accessibilityImage$raw,
         draggable: draggable || false,
         ref: hiddenImageRef,
@@ -315,7 +331,7 @@ const BaseImage: ImageComponent = React.forwardRef((props, ref) => {
   return (
     <View
       {...rest}
-      accessibilityLabel={accessibilityLabel}
+      aria-label={ariaLabel}
       onLayout={handleLayout}
       pointerEvents={pointerEvents}
       ref={ref}

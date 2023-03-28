@@ -9,9 +9,8 @@
 
 import React from 'react';
 import Text from '../';
-import { act } from 'react-dom/test-utils';
-import { createEventTarget } from 'dom-event-testing-library';
-import { render } from '@testing-library/react';
+import { createEventTarget, setPointerEvent } from 'dom-event-testing-library';
+import { act, render } from '@testing-library/react';
 
 describe('components/Text', () => {
   test('default', () => {
@@ -24,42 +23,40 @@ describe('components/Text', () => {
     expect(container.firstChild).toMatchSnapshot();
   });
 
-  describe('prop "accessibilityLabel"', () => {
+  describe('prop "aria-label"', () => {
     test('value is set', () => {
-      const { container } = render(
-        <Text accessibilityLabel="accessibility label" />
-      );
+      const { container } = render(<Text aria-label="accessibility label" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
 
-  describe('prop "accessibilityLabelledBy"', () => {
+  describe('prop "aria-labelledby"', () => {
     test('value is set', () => {
-      const { container } = render(<Text accessibilityLabelledBy="123" />);
+      const { container } = render(<Text aria-labelledby="123" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
 
-  describe('prop "accessibilityLiveRegion"', () => {
+  describe('prop "aria-live"', () => {
     test('value is set', () => {
-      const { container } = render(<Text accessibilityLiveRegion="polite" />);
+      const { container } = render(<Text aria-live="polite" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
 
-  describe('prop "accessibilityRole"', () => {
+  describe('prop "role"', () => {
     test('value is set', () => {
-      const { container } = render(<Text accessibilityRole="none" />);
+      const { container } = render(<Text role="none" />);
       expect(container.firstChild).toMatchSnapshot();
     });
 
     test('value is "button"', () => {
-      const { container } = render(<Text accessibilityRole="button" />);
+      const { container } = render(<Text role="button" />);
       expect(container.firstChild).toMatchSnapshot();
     });
 
     test('value alters HTML element', () => {
-      const { container } = render(<Text accessibilityRole="article" />);
+      const { container } = render(<Text role="article" />);
       expect(container.firstChild).toMatchSnapshot();
     });
   });
@@ -233,6 +230,28 @@ describe('components/Text', () => {
     });
   });
 
+  describe('prop "onPointerDown"', () => {
+    beforeEach(() => {
+      setPointerEvent(true);
+    });
+    afterEach(() => {
+      setPointerEvent(false);
+    });
+
+    test('is called', () => {
+      const onPointerDown = jest.fn();
+      const ref = React.createRef();
+      act(() => {
+        render(<Text onPointerDown={onPointerDown} ref={ref} />);
+      });
+      const target = createEventTarget(ref.current);
+      act(() => {
+        target.pointerdown({ pointerType: 'touch' });
+      });
+      expect(onPointerDown).toBeCalled();
+    });
+  });
+
   describe('prop "onPress"', () => {
     test('is called', () => {
       const onPress = jest.fn();
@@ -293,7 +312,6 @@ describe('components/Text', () => {
       expect(typeof node.measure === 'function');
       expect(typeof node.measureLayout === 'function');
       expect(typeof node.measureInWindow === 'function');
-      expect(typeof node.setNativeProps === 'function');
     });
   });
 

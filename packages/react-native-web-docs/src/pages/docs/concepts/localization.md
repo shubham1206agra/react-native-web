@@ -5,7 +5,6 @@ permalink: /docs/localization/index.html
 eleventyNavigation:
   key: Localization
   parent: Concepts
-  label: "Change"
 ---
 
 {% import "fragments/macros.html" as macro with context %}
@@ -23,7 +22,7 @@ The non-standard [direction-independent style properties and values]({{ '/docs/s
 
 ```jsx
 // "start" is "left" for LTR and "right" for RTL
-const style = { paddingStart: 10, marginStart: 10 };
+const style = { paddingInlineStart: 10, marginInlineStart: 10 };
 return (
   <View style={style} />
 );
@@ -51,7 +50,7 @@ The `useLocaleContext` API can be used for fine-grained control of layout, e.g.,
 const { direction, locale } = useLocaleContext();
 
 const isRTL = direction === 'rtl';
-const style = { transform: [{ scaleX: isRTL ? -1 : 1 }] };
+const style = { scaleX: isRTL ? -1 : 1 };
 
 <Image source={'forward.svg'} style={style} />
 <Image source={isRTL ? 'back.svg' : 'forward.svg'} />

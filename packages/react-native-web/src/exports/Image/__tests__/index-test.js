@@ -7,13 +7,12 @@
 
 /* eslint-disable react/jsx-no-bind */
 
-import { act } from 'react-dom/test-utils';
 import * as AssetRegistry from '../../../modules/AssetRegistry';
 import Image from '../';
 import ImageLoader, { ImageUriCache } from '../../../modules/ImageLoader';
 import PixelRatio from '../../PixelRatio';
 import React from 'react';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 
 const originalImage = window.Image;
 
@@ -27,13 +26,10 @@ describe('components/Image', () => {
     window.Image = originalImage;
   });
 
-  test('prop "accessibilityLabel"', () => {
+  test('prop "aria-label"', () => {
     const defaultSource = { uri: 'https://google.com/favicon.ico' };
     const { container } = render(
-      <Image
-        accessibilityLabel="accessibilityLabel"
-        defaultSource={defaultSource}
-      />
+      <Image aria-label="accessibilityLabel" defaultSource={defaultSource} />
     );
     expect(container.firstChild).toMatchSnapshot();
   });
@@ -349,11 +345,6 @@ describe('components/Image', () => {
   });
 
   describe('prop "style"', () => {
-    test('supports "resizeMode" property', () => {
-      const { container } = render(<Image style={{ resizeMode: 'contain' }} />);
-      expect(container.firstChild).toMatchSnapshot();
-    });
-
     test('supports "shadow" properties (convert to filter)', () => {
       const { container } = render(
         <Image
@@ -363,17 +354,19 @@ describe('components/Image', () => {
       expect(container.firstChild).toMatchSnapshot();
     });
 
-    test('supports "tintcolor" property (convert to filter)', () => {
-      const defaultSource = { uri: 'https://google.com/favicon.ico' };
-      const { container } = render(
-        <Image defaultSource={defaultSource} style={{ tintColor: 'red' }} />
-      );
-      expect(container.firstChild).toMatchSnapshot();
-    });
-
     test('removes other unsupported View styles', () => {
       const { container } = render(
         <Image style={{ overlayColor: 'red', tintColor: 'blue' }} />
+      );
+      expect(container.firstChild).toMatchSnapshot();
+    });
+  });
+
+  describe('prop "tintColor"', () => {
+    test('convert to filter', () => {
+      const defaultSource = { uri: 'https://google.com/favicon.ico' };
+      const { container } = render(
+        <Image defaultSource={defaultSource} tintColor={'red'} />
       );
       expect(container.firstChild).toMatchSnapshot();
     });

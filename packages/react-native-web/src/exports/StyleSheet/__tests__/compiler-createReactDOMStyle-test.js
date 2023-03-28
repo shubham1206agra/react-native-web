@@ -35,12 +35,12 @@ describe('compiler/createReactDOMStyle', () => {
       borderBottomWidth: 1,
       borderWidth: 0,
       marginTop: 50,
-      marginVertical: 25,
+      marginBlock: 25,
       margin: 10,
       overflow: 'hidden',
       overscrollBehavior: 'contain',
       paddingLeft: 50,
-      paddingHorizontal: 25,
+      paddingInline: 25,
       padding: 10
     };
 
@@ -70,12 +70,6 @@ describe('compiler/createReactDOMStyle', () => {
         "paddingTop": "10px",
       }
     `);
-  });
-
-  test('aspectRatio', () => {
-    expect(createReactDOMStyle({ aspectRatio: 9 / 16 })).toEqual({
-      aspectRatio: '0.5625'
-    });
   });
 
   describe('flexbox styles', () => {
@@ -188,55 +182,6 @@ describe('compiler/createReactDOMStyle', () => {
           "fontFamily": "Noto,BlinkMacSystemFont",
         }
       `);
-    });
-  });
-
-  test('fontVariant', () => {
-    expect(
-      createReactDOMStyle({ fontVariant: ['common-ligatures', 'small-caps'] })
-    ).toEqual({
-      fontVariant: 'common-ligatures small-caps'
-    });
-  });
-
-  test('textAlignVertical', () => {
-    expect(
-      createReactDOMStyle({
-        textAlignVertical: 'center'
-      })
-    ).toEqual({
-      verticalAlign: 'middle'
-    });
-  });
-
-  describe('transform', () => {
-    // passthrough if transform value is ever a string
-    test('string', () => {
-      const transform =
-        'perspective(50px) scaleX(20) translateX(20px) rotate(20deg)';
-      const style = { transform };
-      const resolved = createReactDOMStyle(style);
-
-      expect(resolved).toEqual({ transform });
-    });
-
-    test('array', () => {
-      const style = {
-        transform: [
-          { perspective: 50 },
-          { scaleX: 20 },
-          { translateX: 20 },
-          { rotate: '20deg' },
-          { matrix: [1, 2, 3, 4, 5, 6] },
-          { matrix3d: [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4] }
-        ]
-      };
-      const resolved = createReactDOMStyle(style);
-
-      expect(resolved).toEqual({
-        transform:
-          'perspective(50px) scaleX(20) translateX(20px) rotate(20deg) matrix(1,2,3,4,5,6) matrix3d(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4)'
-      });
     });
   });
 });

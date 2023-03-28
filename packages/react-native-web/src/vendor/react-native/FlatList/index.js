@@ -400,12 +400,6 @@ class FlatList<ItemT> extends React.PureComponent<Props<ItemT>, void> {
     }
   }
 
-  setNativeProps(props: {[string]: mixed, ...}) {
-    if (this._listRef) {
-      this._listRef.setNativeProps(props);
-    }
-  }
-
   constructor(props: Props<ItemT>) {
     super(props);
     this._checkProps(this.props);
@@ -614,7 +608,7 @@ class FlatList<ItemT> extends React.PureComponent<Props<ItemT>, void> {
             'Expected array of items with numColumns > 1',
           );
           return (
-            <View style={StyleSheet.compose(styles.row, columnWrapperStyle)}>
+            <View style={[styles.row, columnWrapperStyle]}>
               {item.map((it, kk) => {
                 const element = renderer({
                   item: it,

@@ -11,6 +11,10 @@ import Example from '../../shared/example';
 
 const ITEMS = [...Array(200)].map((_, i) => `Item ${i}`);
 
+const viewabilityConfig = {
+  itemVisiblePercentThreshold: 95
+};
+
 function createItemRow({ item, index }) {
   return (
     <Pressable key={index} style={[styles.item]}>
@@ -23,26 +27,19 @@ function Divider() {
   return <View style={styles.divider} />;
 }
 
-const viewabilityConfig = {
-  itemVisiblePercentThreshold: 95
-};
-
 function onViewableItemsChanged({ viewableItems, changed }) {
   console.log('Visible items are', viewableItems);
   console.log('Changed in this iteration', changed);
 }
 
 export default function ScrollViewPage() {
-  const scrollRef = React.useRef(null);
   const [isInverted, setIsInverted] = React.useState(true);
 
   return (
     <Example title="ViewableItems Test">
       <View style={styles.container}>
         <Button
-          onPress={() => {
-            setIsInverted((val) => !val);
-          }}
+          onPress={() => setIsInverted((val) => !val)}
           title={isInverted ? 'Inverted Enabled' : 'Inverted Disabled'}
         />
         <FlatList
@@ -50,7 +47,6 @@ export default function ScrollViewPage() {
           data={ITEMS}
           inverted={isInverted}
           onViewableItemsChanged={onViewableItemsChanged}
-          ref={scrollRef}
           renderItem={createItemRow}
           style={styles.scrollView}
           viewabilityConfig={viewabilityConfig}

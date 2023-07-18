@@ -1424,14 +1424,23 @@ class VirtualizedList extends React.PureComponent<Props, State> {
     }
   };
 
+  _selectClientLength(parentNode) {
+    return !horizontalOrDefault(this.props.horizontal) ? parentNode.clientHeight : parentNode.clientWidth;
+  }
+
   _onCellLayout(e, cellKey, index) {
     const layout = e.nativeEvent.layout;
+    const target = e.nativeEvent.target;
     const next = {
       offset: this._selectOffset(layout),
       length: this._selectLength(layout),
       index,
       inLayout: true,
     };
+
+    if (this.props.inverted) {
+      next.offset = this._selectClientLength(target.parentNode) - next.offset - next.length;
+    }
     const curr = this._frames[cellKey];
     if (
       !curr ||

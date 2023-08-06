@@ -417,8 +417,8 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
 
   state: State;
 
-  // REACT-NATIVE-WEB patch to preserve during future RN merges: Support inverted wheel scroller.
-  invertedWheelEventHandler: ?(ev: any) => void;
+   // REACT-NATIVE-WEB patch to preserve during future RN merges: Support inverted wheel scroller.
+   invertedWheelEventHandler: ?(ev: any) => void;
 
   constructor(props: Props) {
     super(props);

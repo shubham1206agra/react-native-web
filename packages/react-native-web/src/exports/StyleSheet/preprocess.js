@@ -107,17 +107,19 @@ const ignoredProps = {
  * Preprocess styles
  */
 export const preprocess = <T: {| [key: string]: any |}>(
-  originalStyle: T
+  originalStyle: T,
+  options?: { shadow?: boolean, textShadow?: boolean } = {}
 ): T => {
   const style = originalStyle || emptyObject;
   const nextStyle = {};
 
   // Convert shadow styles
   if (
+    (options.shadow === true,
     style.shadowColor != null ||
-    style.shadowOffset != null ||
-    style.shadowOpacity != null ||
-    style.shadowRadius != null
+      style.shadowOffset != null ||
+      style.shadowOpacity != null ||
+      style.shadowRadius != null)
   ) {
     warnOnce(
       'shadowStyles',
@@ -135,9 +137,10 @@ export const preprocess = <T: {| [key: string]: any |}>(
 
   // Convert text shadow styles
   if (
+    (options.textShadow === true,
     style.textShadowColor != null ||
-    style.textShadowOffset != null ||
-    style.textShadowRadius != null
+      style.textShadowOffset != null ||
+      style.textShadowRadius != null)
   ) {
     warnOnce(
       'textShadowStyles',
@@ -179,7 +182,7 @@ export const preprocess = <T: {| [key: string]: any |}>(
       continue;
     }
 
-    if (prop === 'aspectRatio') {
+    if (prop === 'aspectRatio' && typeof value === 'number') {
       nextStyle[prop] = value.toString();
     } else if (prop === 'fontVariant') {
       if (Array.isArray(value) && value.length > 0) {

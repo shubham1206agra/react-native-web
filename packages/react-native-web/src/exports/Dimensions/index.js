@@ -66,8 +66,7 @@ function update() {
      * We are multiplying by scale because height and width from visual viewport
      * also react to pinch zoom, and become smaller when zoomed. But it is not desired
      * behaviour, since originally documentElement client height and width were used,
-     * and they do not react to pinch zoom. We had an issue where layouts were adopting to smaller measures
-     * when pinch zoomed. context - https://github.com/Expensify/App/issues/17246
+     * and they do not react to pinch zoom.
      */
     height = Math.round(visualViewport.height * visualViewport.scale);
     width = Math.round(visualViewport.width * visualViewport.scale);

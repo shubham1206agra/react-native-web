@@ -816,7 +816,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
 
       this._indicesToKeys.set(ii, key);
       if (stickyIndicesFromProps.has(ii + stickyOffset)) {
-        stickyHeaderIndices.psuh(cells.length);
+        stickyHeaderIndices.push(cells.length);
       }
 
       const shouldListenForLayout =
